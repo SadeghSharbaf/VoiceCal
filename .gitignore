@@ -1,4 +1,5 @@
 .venv/
+<<<<<<< HEAD
 __pycache__/
 *.pyc
 .env
@@ -7,3 +8,23 @@ data/
 .pytest_cache/
 models/
 tools/
+=======
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+!.env.example
+credentials.json
+data/
+models/
+tools/
+*.sqlite3
+*.sqlite
+*.db
+*.log
+.DS_Store
+Thumbs.db
+>>>>>>> 85c6a62b11e8deba3e93d912e1bee9e1a1d8c3a3
