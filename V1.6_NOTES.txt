@@ -1,0 +1,22 @@
+VoiceCal V1.6
+==============
+
+Main change:
+- Replaced faster-whisper with whisper.cpp.
+- Default STT model is SadeghK/whisper-base converted GGML Persian model.
+- Model file is ~148 MB instead of 1.6 GB.
+- Runs on CPU by default, so no CUDA/cuDNN setup is needed.
+- Keeps the V1.5 anchor-based protocol and inline correction buttons.
+
+Recommended spoken command:
+موضوع طراحی اپلیکیشن، تاریخ سی شهریور، ساعت پانزده، مدت یک ساعت، یادآور ده دقیقه قبل
+
+First install:
+1) setup_windows.bat
+2) copy/keep .env, credentials.json, data/
+3) run.bat
+
+If upgrading from V1.5:
+- You can copy your old .env. V1.6 ignores the old WHISPER_MODEL / DEVICE settings.
+- New WHISPER_CPP_* settings have safe defaults even when missing from .env.
+- Run setup_stt_windows.bat once to download the ~148 MB Persian model and whisper.cpp binary.
