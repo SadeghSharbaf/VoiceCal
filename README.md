@@ -1,192 +1,98 @@
-<<<<<<< HEAD
-# VoiceCal V1.6.2.2 — Persian whisper.cpp → Google Calendar
+# VoiceCal — Persian Voice-to-Google Calendar Assistant
 
-VoiceCal روی لپ‌تاپ اجرا می‌شود، Voice یا متن Telegram را می‌گیرد، Voice را **کاملاً لوکال** به متن تبدیل می‌کند، فیلدهای Event را استخراج می‌کند، Preview می‌دهد و فقط بعد از تأیید شما Event را در Google Calendar می‌سازد.
+VoiceCal turns Persian Telegram voice messages or text into structured Google Calendar events. Speech recognition runs locally on the user's computer with `whisper.cpp` and a Persian fine-tuned Whisper model. Before an event is created, VoiceCal presents an editable preview and waits for explicit confirmation.
 
-در V1.6.2 موتور Speech-to-Text عوض شده است:
+## Highlights
 
-```text
-faster-whisper عمومی
-        ↓ حذف شد
-whisper.cpp + Persian fine-tuned Whisper Base
-```
+- Persian voice-message and text input through Telegram.
+- Local speech-to-text with `whisper.cpp` and `ggml-base-fa.bin` (approximately 148 MB).
+- Extraction of event title, date, time, duration, and reminder.
+- Follow-up prompts for unclear or missing fields rather than silently guessing.
+- Editable event preview and explicit confirmation before writing to Google Calendar.
+- Windows setup scripts, resumable model download, and automated tests.
 
-مدل پیش‌فرض `ggml-base-fa.bin` حدود **148MB** است؛ بنابراین دیگر دانلود 1.6GB مدل Turbo/Large لازم نیست و CUDA/cuDNN هم لازم نیست.
-
-## معماری V1.6.2
+## Workflow
 
 ```text
-Telegram Voice
-      ↓
-whisper.cpp (local CPU)
-      ↓
-Persian fine-tuned ggml-base-fa.bin
-      ↓
-ASR correction (فقط خطاهای کوچک)
-      ↓
-Anchor Slot Extractor
-      ↓
-موضوع / تاریخ / ساعت / مدت / یادآور
-      ↓
-فقط فیلدهای نامفهوم → دکمه/سؤال
-      ↓
-Preview قابل ویرایش
-      ↓
-✅ Confirm
-      ↓
-Google Calendar
-```
-
-قالب پیشنهادی Voice:
-
-```text
-موضوع طراحی اپلیکیشن، تاریخ سی شهریور، ساعت پانزده، مدت یک ساعت، یادآور ده دقیقه قبل
-```
-
-ترتیب بخش‌ها اجباری نیست. اگر فقط یک بخش فهمیده نشود، فقط همان بخش دوباره پرسیده می‌شود.
-
-## چرا V1.6.2؟
-
-مدل‌های عمومی Small/Medium روی بعضی Voiceهای فارسی محاوره‌ای خروجی ضعیفی داشتند. V1.6.2 از یک Whisper Base که روی فارسی fine-tune شده استفاده می‌کند. هدف این نسخه این است که اول **دقت فارسی روی صدای واقعی شما** را تست کنیم، نه اینکه صرفاً مدل عمومی بزرگ‌تر و سنگین‌تر کنیم.
-
-## نصب روی Windows
-
-پیشنهاد: Python 3.11 یا 3.12.
-
-اگر نسخه جدید را از صفر نصب می‌کنید فقط اجرا کنید:
-
-```text
-setup_windows.bat
-```
-
-این کار:
-
-1. `.venv` می‌سازد.
-2. پکیج‌های Python را نصب می‌کند.
-3. نسخه Windows x64 از `whisper.cpp` را دانلود می‌کند.
-4. مدل فارسی `ggml-base-fa.bin` را در `models\` دانلود می‌کند (~148MB).
-
-دانلود مدل **resume** می‌شود. اگر اینترنت قطع شد، دوباره `setup_stt_windows.bat` را اجرا کنید.
-
-### اگر از V1.5 ارتقا می‌دهید
-
-از پروژه قبلی این‌ها را کپی کنید:
-
-```text
-.env
-credentials.json
-data\
-```
-
-سپس فقط یک بار اجرا کنید:
-
-```text
-setup_windows.bat
-```
-
-یا اگر `.venv` را از قبل دارید:
-
-```text
-setup_stt_windows.bat
-```
-
-متغیرهای قدیمی زیر در V1.6.2 دیگر استفاده نمی‌شوند و اگر داخل `.env` بمانند مشکلی ایجاد نمی‌کنند:
-
-```env
-WHISPER_MODEL=medium
-WHISPER_DEVICE=cpu
-WHISPER_COMPUTE_TYPE=int8
-WHISPER_QUALITY=high
-```
-
-## تنظیمات STT جدید
-
-Defaults کافی هستند؛ اگر خواستید داخل `.env` اضافه کنید:
-=======
-# VoiceCal — Persian Voice to Google Calendar
-
-VoiceCal is a local-first Telegram assistant that turns Persian voice messages into editable calendar events. It transcribes audio on your own computer with `whisper.cpp` and a Persian fine-tuned Whisper model, extracts event details, and only creates an event in Google Calendar after you confirm the preview.
-
-## Features
-
-- Local Persian speech-to-text using `whisper.cpp` (no paid speech API required).
-- Telegram voice-message and text input.
-- Persian date parsing and event-field extraction: title, date, time, duration, and reminder.
-- Interactive clarification for missing or ambiguous fields.
-- Editable event preview with explicit confirmation before writing to Google Calendar.
-- Windows setup scripts and automated tests.
-
-## How it works
-
-```text
-Telegram voice/text
-        ↓
-Local audio decoding + whisper.cpp
-        ↓
-Persian ASR correction
-        ↓
-Event slot extraction and date parsing
-        ↓
-Clarify missing fields
-        ↓
-Editable preview → user confirmation
-        ↓
-Google Calendar
+Telegram voice or text
+        |
+        v
+Local audio decoding and whisper.cpp
+        |
+        v
+Persian transcription and light correction
+        |
+        v
+Event-field extraction and date parsing
+        |
+        v
+Clarify missing or ambiguous fields
+        |
+        v
+Editable event preview
+        |
+        v
+User confirms
+        |
+        v
+Google Calendar event
 ```
 
 ## Requirements
 
-- Windows x64 (the included setup scripts target Windows).
+- Windows x64 (the included setup scripts are Windows-focused).
 - Python 3.11 or 3.12 recommended.
-- A Telegram bot token.
-- Google Calendar OAuth credentials.
-- Internet access during initial setup to download dependencies, the whisper.cpp executable, and the Persian model.
+- A Telegram bot token and your Telegram user ID.
+- Google Calendar OAuth client credentials.
+- Internet access for the initial dependency, executable, and model downloads.
 
-The speech recognition model and executable run locally after setup. The model download is approximately 148 MB.
+After initial setup, transcription is performed locally. The default Persian model is approximately 148 MB; a large cloud speech API or CUDA installation is not required by the documented setup.
 
 ## Quick start (Windows)
 
-1. Clone the repository and enter the project directory.
-2. Create your local environment configuration:
+1. Clone this repository and open its directory.
+2. Create your local environment file:
 
    ```powershell
    Copy-Item .env.example .env
    ```
 
-3. Edit `.env` and set your Telegram bot token and allowed Telegram user ID.
+3. Add your Telegram bot token and restrict access with your Telegram user ID in `.env`.
 4. Run the setup script:
 
    ```bat
    setup_windows.bat
    ```
 
-   If you already have a Python environment and only need to set up speech recognition, use `setup_stt_windows.bat`.
+   If the Python environment already exists and only speech recognition needs setup, run `setup_stt_windows.bat`.
 
-5. Place your Google OAuth client file at `credentials.json` (never commit it).
-6. Connect Google Calendar if you have not already:
+5. Place your Google OAuth client file at `credentials.json`. Keep it out of version control.
+6. Complete Google Calendar authorization when needed:
 
    ```bat
    connect_google.bat
    ```
 
-7. Start VoiceCal:
+7. Start the bot:
 
    ```bat
    run.bat
    ```
 
-8. Send a voice message to your Telegram bot.
+8. Send a Persian voice message or text request to your Telegram bot.
 
-## Example Persian voice request
+## Example request
 
-> موضوع طراحی اپلیکیشن، تاریخ سی شهریور، ساعت پانزده، مدت یک ساعت، یادآور ده دقیقه قبل
+```text
+موضوع طراحی اپلیکیشن، تاریخ سی شهریور، ساعت پانزده،
+مدت یک ساعت، یادآور ده دقیقه قبل
+```
 
-VoiceCal extracts the event details and presents a preview. Confirm the preview to create the event.
+VoiceCal extracts the event details and shows a preview. Review and confirm it to create the calendar event.
 
 ## Configuration
 
-See `.env.example` for the available settings. Common speech-to-text options include:
->>>>>>> 85c6a62b11e8deba3e93d912e1bee9e1a1d8c3a3
+Start with `.env.example`. The speech-to-text defaults use the local whisper.cpp executable and Persian model:
 
 ```env
 WHISPER_CPP_EXE=tools/whispercpp/whisper-cli.exe
@@ -196,141 +102,38 @@ WHISPER_CPP_BEAM_SIZE=5
 WHISPER_CPP_BEST_OF=5
 ```
 
-<<<<<<< HEAD
-روی TUF با 16GB RAM، 4 thread برای شروع انتخاب محافظه‌کارانه‌ای است. این نسخه CPU است و RTX/CUDA را درگیر نمی‌کند.
-
-## Telegram
-
-در `.env`:
+Telegram configuration:
 
 ```env
-TELEGRAM_BOT_TOKEN=...
-ALLOWED_TELEGRAM_USER_ID=...
+TELEGRAM_BOT_TOKEN=your_bot_token
+ALLOWED_TELEGRAM_USER_ID=your_telegram_user_id
 ```
 
-بعد از اولین `/whoami` بهتر است `ALLOWED_TELEGRAM_USER_ID` را تنظیم کنید تا Bot شخصی بماند.
-
-## Google Calendar
-
-همان فایل‌های نسخه قبلی قابل استفاده هستند:
-
-```text
-credentials.json
-data/google_token.json
-```
-
-اگر OAuth قبلاً انجام شده، نیازی به اتصال دوباره نیست. در غیر این صورت:
-
-```text
-connect_google.bat
-```
-
-## اجرا
-
-```text
-run.bat
-```
-
-در startup باید چیزی شبیه این ببینید:
-
-```text
-Checking whisper.cpp Persian STT: ...
-whisper.cpp Persian STT is ready.
-Application started
-```
-
-سپس در Telegram یک Voice بفرستید.
-
-## رفتار فیلدهای ناقص
-
-اگر ساعت را نفهمد، کل 24 ساعت عددی نمایش داده می‌شود:
-
-```text
-00:00  01:00  02:00  03:00
-...
-20:00  21:00  22:00  23:00
-```
-
-مدت و Reminder هم دکمه‌های سریع دارند. Preview نهایی قابل ویرایش است:
-
-```text
-[✅ تأیید] [❌ لغو]
-[✏️ عنوان] [📅 تاریخ] [🕒 ساعت]
-[⏱ مدت] [🔔 یادآور]
-```
-
-## تست پیشنهادی
-
-این جمله را با Voice بگویید:
-
-```text
-موضوع طراحی اپلیکیشن، تاریخ سی شهریور، ساعت پانزده، مدت یک ساعت، یادآور ده دقیقه قبل
-```
-
-اول خروجی `📝 متن تشخیص‌داده‌شده` را بررسی کنید. این تست مشخص می‌کند مدل فارسی V1.6.2 نسبت به مدل‌های عمومی قبلی روی صدای شما چقدر بهتر است.
-
-## نکات فنی
-
-- Speech-to-Text API پولی ندارد.
-- WordPress/VPS لازم نیست.
-- `whisper.cpp` از OGG پشتیبانی می‌کند، بنابراین Voice تلگرام مستقیم به CLI داده می‌شود.
-- مدل و executable بعد از setup کاملاً local هستند.
-- V1.6.2 برای سادگی از CLI استفاده می‌کند؛ مدل Base کوچک است. اگر بعداً بخواهیم latency شروع هر Voice را کمتر کنیم، می‌توانیم `whisper-server` محلی را persistent اجرا کنیم و مدل را دائماً در RAM نگه داریم.
-
-## تست‌های پروژه
-
-```text
-pytest -q
-```
-
-## امنیت
-
-- `.env`، `credentials.json` و `data/google_token.json` را آپلود عمومی نکنید.
-- Telegram Bot Token را مثل پسورد در نظر بگیرید.
-- اگر Token در log یا چت منتشر شد، از BotFather آن را revoke و Token جدید بسازید.
-
-
-## V1.6.2.2 fix
-
-Windows STT setup no longer uses the fragile inline PowerShell release parser. The whisper.cpp Windows binary is now discovered and downloaded by `scripts/download_whispercpp.py`, avoiding the `Unexpected token ^` error.
-
-
-## V1.6.2 audio-pipeline fix
-Telegram voice notes are OGG/Opus. VoiceCal now decodes every voice locally with PyAV into 16 kHz mono PCM16 WAV before invoking whisper.cpp. This removes ambiguity around direct OGG support in Windows builds. Transcription is also read from whisper.cpp's UTF-8 text output file, and empty output now raises a diagnostic error instead of silently looking like bad recognition.
-=======
-The default values should be sufficient for a first run. The model and executable are downloaded by the setup scripts and intentionally excluded from Git.
+Keep the bot private by setting `ALLOWED_TELEGRAM_USER_ID` to the intended account.
 
 ## Tests
 
-Activate the project virtual environment, then run:
+Activate the project's virtual environment and run:
 
 ```powershell
 pytest -q
 ```
 
-## Repository layout
+## Security and privacy
 
-```text
-voicecal_bot/       Application and Telegram bot modules
-tests/              Unit tests
-scripts/            Speech recognition download and test utilities
-.env.example        Example configuration (contains no live secrets)
-requirements.txt    Python dependencies
-setup_windows.bat   Windows setup
-run.bat             Run the bot
-connect_google.bat  Google Calendar OAuth setup
-```
-
-## Security notes
-
-- Never commit `.env`, `credentials.json`, Telegram bot tokens, or Google OAuth token files.
-- Local runtime data is excluded from Git.
-- Restrict the bot using `ALLOWED_TELEGRAM_USER_ID` so it is not available to arbitrary Telegram users.
-- If a token is exposed, revoke it and create a replacement.
+- Never commit `.env`, `credentials.json`, Google token files, or Telegram bot tokens.
+- Treat bot tokens and OAuth credentials like passwords.
+- Restrict the Telegram bot to authorized user IDs.
+- If a token is exposed, revoke it and issue a replacement.
+- Review the Google OAuth scopes and permissions before authorizing the application.
 
 ## Notes
 
-- VoiceCal is designed to run on your computer; a VPS or WordPress installation is not required.
-- Initial setup requires network access. Transcription runs locally after the model and executable have been downloaded.
-- The included scripts are Windows-focused; other operating systems may require manual setup adjustments.
->>>>>>> 85c6a62b11e8deba3e93d912e1bee9e1a1d8c3a3
+- VoiceCal is designed to run on a Windows computer; a VPS or WordPress installation is not required for the documented workflow.
+- Initial setup requires network access to obtain dependencies, the whisper.cpp executable, and the model.
+- Model files and downloaded binaries are intentionally kept out of Git.
+- Speech recognition quality depends on recording quality, accent, background noise, and the selected model.
+
+## License
+
+No license is currently specified in this repository. All rights are reserved unless the project owner adds an explicit open-source license.
